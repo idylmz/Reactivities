@@ -4,7 +4,7 @@ import { IActivity } from "../../../App/Models/activity";
 import { v4 as uuid } from "uuid";
 
 interface IProps {
-  activity: IActivity | null;
+  activity: IActivity | undefined;
   setEditMode: (editMode: boolean) => void;
   editActivity: (e: SyntheticEvent<HTMLFormElement>, activity: IActivity) => void;
   createActivity: (activity: IActivity) => void;
