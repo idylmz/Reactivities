@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,8 @@ namespace API
         public static void Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
+
+            //var host = new WebHostBuilder().UseKestrel().UseContentRoot(Directory.GetCurrentDirectory()).UseUrls("http://localhost:5000").UseIISIntegration().UseStartup<Startup>().Build();
 
             using (var scope = host.Services.CreateScope())
             {
