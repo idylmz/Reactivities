@@ -1,37 +1,51 @@
-import React, { useState, FormEvent, SyntheticEvent, useContext } from "react";
+import React, {
+  useState,
+  FormEvent,
+  SyntheticEvent,
+  useContext,
+  useEffect,
+} from "react";
 import { Segment, Form, Button } from "semantic-ui-react";
 import { IActivity } from "../../../App/Models/activity";
 import { v4 as uuid } from "uuid";
 import ActivityStore from "../../../App/Stores/activityStore";
 import { observer } from "mobx-react-lite";
+import { RouteComponentProps } from "react-router-dom";
+import { LoadingComponent } from "../../../App/Layout/LoadingComponent";
 
-const ActivityForm: React.FC = () => {
+interface DetailParams {
+  id: string;
+}
+
+const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({
+  match,
+  history
+}) => {
   const activityStore = useContext(ActivityStore);
   const {
     createActivity,
     editActivity,
     submitting,
-    cancelEditForm,
-    selectedActivity: initialFormState
+    selectedActivity: initialFormState,
+    loadActivity,
+    loadingInitial
   } = activityStore;
 
-  const initializeForm = () => {
-    if (initialFormState) {
-      return initialFormState;
-    } else {
-      return {
-        id: "",
-        title: "",
-        category: "",
-        description: "",
-        date: "",
-        city: "",
-        venue: ""
-      };
-    }
-  };
+  const [activity, setActivity] = useState<IActivity>({
+    id: "",
+    title: "",
+    category: "",
+    description: "",
+    date: "",
+    city: "",
+    venue: "",
+  });
 
-  const [activity, setActivity] = useState<IActivity>(initializeForm);
+  useEffect(() => {
+    if (match.params.id && activity.id.length === 0) {
+      loadActivity(match.params.id).then(() => initialFormState && setActivity(initialFormState));
+    }
+  }, [loadActivity, match.params.id, initialFormState, activity.id.length]);
 
   const handleInputChange = (
     event: FormEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -43,14 +57,15 @@ const ActivityForm: React.FC = () => {
     if (activity.id.length === 0) {
       let newActivity = {
         ...activity,
-        id: uuid()
+        id: uuid(),
       };
-      createActivity(e, newActivity);
+      createActivity(e, newActivity).then(() => {history.push(`/Activities/${newActivity.id}`)});
     } else {
-      editActivity(e, activity);
+      editActivity(e, activity).then(() => {history.push(`/Activities/${activity.id}`)});
     }
   };
 
+  if(loadingInitial) return <LoadingComponent loadingText="Activity is loading..." />
   return (
     <Segment clearing>
       <Form onSubmit={handleSubmit} loading={submitting}>
@@ -101,7 +116,7 @@ const ActivityForm: React.FC = () => {
         />
         <Button
           floated="right"
-          onClick={cancelEditForm}
+          onClick={() => history.push("/Activities")}
           type="button"
           content="Cancel"
         />
